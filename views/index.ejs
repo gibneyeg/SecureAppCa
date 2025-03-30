@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Task Manager</title>
+</head>
+<body>
+  <h1>Tasks</h1>
+  <a href="/add">Add New Task</a>
+  
+  <ul>
+    <% tasks.forEach(task => { %>
+      <li>
+        <h3><%= task.title %></h3>
+        <p><%= task.description %></p>
+        <p>Created: <%= task.created_at %></p>
+        
+        <% if (task.completed) { %>
+          <p>Status: Completed</p>
+        <% } else { %>
+          <p>Status: Pending</p>
+          <form method="post" action="/complete/<%= task.id %>">
+            <button type="submit">Mark as Complete</button>
+          </form>
+        <% } %>
+        
+        <form method="post" action="/delete/<%= task.id %>">
+          <button type="submit">Delete</button>
+        </form>
+      </li>
+    <% }); %>
+  </ul>
+</body>
+</html>
