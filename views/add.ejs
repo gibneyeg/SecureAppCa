@@ -17,5 +17,14 @@
     <button type="submit">Add Task</button>
   </form>
   <a href="/">Back to Tasks</a>
+  
+  <!-- VULNERABILITY-->
+  <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const title = document.getElementById('title').value;
+      console.log('Submitting task:', title);
+      // Note: No server-side validation, so client-side validation can be bypassed
+    });
+  </script>
 </body>
 </html>

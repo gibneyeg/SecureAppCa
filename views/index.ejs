@@ -7,27 +7,76 @@
   <h1>Tasks</h1>
   <a href="/add">Add New Task</a>
   
-  <ul>
-    <% tasks.forEach(task => { %>
-      <li>
-        <h3><%= task.title %></h3>
-        <p><%= task.description %></p>
-        <p>Created: <%= task.created_at %></p>
-        
-        <% if (task.completed) { %>
-          <p>Status: Completed</p>
-        <% } else { %>
-          <p>Status: Pending</p>
-          <form method="post" action="/complete/<%= task.id %>">
-            <button type="submit">Mark as Complete</button>
+  <!-- Search form with XSS vulnerability -->
+  <div>
+    <h3>Search Tasks</h3>
+    <form action="/search" method="get">
+      <input type="text" name="q" placeholder="Search term">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+  
+  <h2>All Tasks</h2>
+  <% if (tasks.length === 0) { %>
+    <p>No tasks yet. Add one!</p>
+  <% } else { %>
+    <ul>
+      <% tasks.forEach(task => { %>
+        <li>
+          <!-- VULNERABILITY: Using <%- %> instead of <%= %> allows XSS -->
+          <h3><%- task.title %></h3>
+          <p><%- task.description %></p>
+          <p>Created: <%= task.created_at %></p>
+          
+          <% if (task.completed) { %>
+            <p>Status: Completed</p>
+          <% } else { %>
+            <p>Status: Pending</p>
+            <form method="post" action="/complete/<%= task.id %>">
+              <button type="submit">Mark as Complete</button>
+            </form>
+          <% } %>
+          
+          <form method="post" action="/delete/<%= task.id %>">
+            <button type="submit">Delete</button>
           </form>
-        <% } %>
-        
-        <form method="post" action="/delete/<%= task.id %>">
-          <button type="submit">Delete</button>
-        </form>
-      </li>
-    <% }); %>
-  </ul>
+          
+          <!-- VULNERABILITY -->
+          <div>
+            <h4>Comments:</h4>
+            <% if (task.comments) { %>
+              <% try { %>
+                <% JSON.parse(task.comments).forEach(comment => { %>
+                  <div>
+                    <!-- VULNERABILITY -->
+                    <p><%- comment.text %></p>
+                    <small>Posted at: <%= comment.timestamp %></small>
+                  </div>
+                <% }); %>
+              <% } catch(e) { %>
+                <p>Error displaying comments</p>
+              <% } %>
+            <% } %>
+            
+            <form method="post" action="/comment/<%= task.id %>">
+              <textarea name="comment" placeholder="Add a comment"></textarea>
+              <button type="submit">Add Comment</button>
+            </form>
+          </div>
+        </li>
+      <% }); %>
+    </ul>
+  <% } %>
+  
+  <!-- VULNERABILITY: Exposing sensitive data to client-side JavaScript -->
+  <script>
+    console.log('Tasks loaded:', JSON.parse('<%- JSON.stringify(tasks) %>'));
+    
+    function generateSearchQuery(term) {
+      return `SELECT * FROM tasks WHERE title LIKE '%${term}%'`;
+    }
+    
+    console.log('Sample query:', generateSearchQuery('test'));
+  </script>
 </body>
 </html>
