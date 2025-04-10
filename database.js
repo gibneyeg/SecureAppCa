@@ -3,7 +3,6 @@ const path = require('path');
 
 const db = new Database(path.join(__dirname, 'tasks.db'));
 
-db.exec(`DROP TABLE IF EXISTS tasks`);
 function initDb() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
