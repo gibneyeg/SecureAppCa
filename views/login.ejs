@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+</head>
+<body>
+  <h1>Login</h1>
+  
+  <!-- FIXED: XSS - Use <%= instead of <%- to escape HTML -->
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="error" style="color: red;"><%= error %></div>
+  <% } %>
+  
+  <% if (typeof message !== 'undefined' && message) { %>
+    <div class="message" style="color: green;"><%= message %></div>
+  <% } %>
+  
+  <!-- FIXED: Added CSRF token to form -->
+  <form method="post" action="/login">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Login</button>
+  </form>
+  
+  <p>Don't have an account? <a href="/register">Register</a></p>
+  
+  <div>
+    <h3>Demo Accounts:</h3>
+    <ul>
+      <li>Admin: username <strong>admin</strong>, password <strong>admin123</strong></li>
+      <li>User: username <strong>user1</strong>, password <strong>password123</strong></li>
+    </ul>
+  </div>
+</body>
+</html>

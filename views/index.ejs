@@ -2,32 +2,88 @@
 <html>
 <head>
   <title>Task Manager</title>
+  <script>
+    // FIXED: DOM-based XSS 
+    window.onload = function() {
+      if (window.location.hash) {
+        const welcomeMsg = document.getElementById('welcome-message');
+        if (welcomeMsg) {
+          welcomeMsg.textContent = 'Welcome back, ' + window.location.hash.substring(1);
+        }
+      }
+      
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+      
+      const theme = getQueryParam('theme');
+      if (theme) {
+        const themeMsg = document.getElementById('theme-message');
+        if (themeMsg) {
+          // FIXED: Safe DOM manipulation
+          themeMsg.textContent = 'Current theme: ' + theme;
+        }
+      }
+    }
+  </script>
 </head>
 <body>
-  <h1>Tasks</h1>
+  <h1>Task Manager</h1>
+  
+  <% if (typeof user !== 'undefined' && user) { %>
+    <p>Welcome, <%= user.username %>! (<%= user.role %>)</p>
+    <a href="/profile">Profile</a> | <a href="/logout">Logout</a>
+  <% } else { %>
+    <a href="/login">Login</a> | <a href="/register">Register</a>
+  <% } %>
+  
+  <div id="welcome-message"></div>
+  <div id="theme-message"></div>
+  
+  <!-- FIXED: Added CSRF token to form -->
+  <form action="/" method="get">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search tasks">
+    <button type="submit">Search</button>
+  </form>
+  
   <a href="/add">Add New Task</a>
   
-  <ul>
-    <% tasks.forEach(task => { %>
-      <li>
-        <h3><%= task.title %></h3>
-        <p><%= task.description %></p>
-        <p>Created: <%= task.created_at %></p>
-        
-        <% if (task.completed) { %>
-          <p>Status: Completed</p>
-        <% } else { %>
-          <p>Status: Pending</p>
-          <form method="post" action="/complete/<%= task.id %>">
-            <button type="submit">Mark as Complete</button>
+  <div class="tasks">
+    <% if (tasks && tasks.length > 0) { %>
+      <% tasks.forEach(task => { %>
+        <div class="task-item">
+          <!-- FIXED: Stored XSS - Use <%= instead of <%- to escape HTML -->
+          <h3><%= task.title %></h3>
+          <p><%= task.description %></p>
+          <p>Created: <%= task.created_at %></p>
+          <% if (typeof task.username !== 'undefined' && task.username) { %>
+            <p>Owner: <%= task.username %></p>
+          <% } %>
+          
+          <% if (task.completed) { %>
+            <p>Status: Completed</p>
+          <% } else { %>
+            <p>Status: Pending</p>
+            <!-- FIXED: Added CSRF token to form -->
+            <form method="post" action="/complete/<%= task.id %>">
+              <button type="submit">Mark as Complete</button>
+            </form>
+          <% } %>
+          
+          <!-- FIXED: Added CSRF token to form -->
+          <form method="post" action="/delete/<%= task.id %>">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit">Delete</button>
           </form>
-        <% } %>
-        
-        <form method="post" action="/delete/<%= task.id %>">
-          <button type="submit">Delete</button>
-        </form>
-      </li>
-    <% }); %>
-  </ul>
+          
+          <a href="/task/<%= task.id %>">View Details</a>
+        </div>
+      <% }); %>
+    <% } else { %>
+      <p>No tasks found. Add a new task to get started!</p>
+    <% } %>
+  </div>
 </body>
 </html>

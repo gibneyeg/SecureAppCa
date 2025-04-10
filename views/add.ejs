@@ -5,14 +5,38 @@
 </head>
 <body>
   <h1>Add New Task</h1>
+  
+  <% if (user) { %>
+    <p>Creating task as: <%= user.username %></p>
+  <% } else { %>
+    <p>You must be logged in to create tasks.</p>
+    <a href="/login">Login</a>
+    <% return; %>
+  <% } %>
+  
+  <!-- FIXED: XSS - Use <%= instead of <%- to escape HTML -->
+  <% if (typeof message !== 'undefined' && message) { %>
+    <div class="message"><%= message %></div>
+  <% } %>
+  
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="error" style="color: red;"><%= error %></div>
+  <% } %>
+  
+  <!-- FIXED: Added CSRF token to form -->
   <form method="post" action="/add">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div>
       <label for="title">Title:</label>
-      <input type="text" id="title" name="title" required>
+      <input type="text" id="title" name="title" maxlength="100" required>
     </div>
     <div>
       <label for="description">Description:</label>
-      <textarea id="description" name="description"></textarea>
+      <textarea id="description" name="description" maxlength="1000"></textarea>
+    </div>
+    <div>
+      <label for="private_notes">Private Notes (only visible to you):</label>
+      <textarea id="private_notes" name="private_notes" maxlength="500"></textarea>
     </div>
     <button type="submit">Add Task</button>
   </form>
