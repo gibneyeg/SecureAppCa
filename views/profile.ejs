@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Profile</title>
+  <script>
+    window.onload = function() {
+      // DOM-based XSS vulnerability
+      const urlParams = new URLSearchParams(window.location.search);
+      const notification = urlParams.get('notification');
+      
+      if (notification) {
+        // Vulnerable: using innerHTML with user input
+        document.getElementById('notification-area').innerHTML = notification;
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Your Profile</h1>
+  
+  <div id="notification-area"></div>
+  
+  <div>
+    <p><strong>Username:</strong> <%= user.username %></p>
+    <p><strong>Email:</strong> <%= user.email %></p>
+    <p><strong>Role:</strong> <%= user.role %></p>
+  </div>
+  
+  <h2>Your Tasks</h2>
+  <p><a href="/">View All Your Tasks</a></p>
+  
+  <a href="/logout">Logout</a>
+</body>
+</html>

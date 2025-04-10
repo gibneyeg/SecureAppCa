@@ -1,11 +1,20 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-// Create a new database instance and connect to it
 const db = new Database(path.join(__dirname, 'tasks.db'));
 
-// Initialize the database with tables if they don't exist
+db.exec(`DROP TABLE IF EXISTS tasks`);
 function initDb() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      email TEXT NOT NULL,
+      role TEXT DEFAULT 'user'
+    )
+  `);
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,22 +22,22 @@ function initDb() {
       description TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       completed INTEGER DEFAULT 0,
-      comments TEXT
+      user_id INTEGER,
+      private_notes TEXT
     )
   `);
   
-  console.log('Database initialized');
+  // Insert demo users if none exist
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
+  if (userCount.count === 0) {
+    // Insecure: Storing plaintext passwords
+    db.prepare('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)').run('admin', 'admin123', 'admin@example.com', 'admin');
+    db.prepare('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)').run('user1', 'password123', 'user1@example.com', 'user');
+    console.log('Demo users created');
+  }
   
-  // VULNERABILITY
-  console.log('Database path:', path.join(__dirname, 'tasks.db'));
-  console.log('SQLite version:', db.pragma('user_version'));
+  console.log('Database initialized');
 }
-
-// VULNERABILITY
-db.executeRawQuery = function(query) {
-  console.log('Warning: Executing raw query:', query);
-  return this.prepare(query).run();
-};
 
 initDb();
 

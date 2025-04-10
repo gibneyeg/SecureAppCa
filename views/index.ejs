@@ -2,31 +2,57 @@
 <html>
 <head>
   <title>Task Manager</title>
+  <script>
+    // DOM-based XSS vulnerability =
+    window.onload = function() {
+      if (window.location.hash) {
+        document.getElementById('welcome-message').innerHTML = 'Welcome back, ' + window.location.hash.substring(1);
+      }
+      
+      // DOM-based XSS vulnerability 
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+      
+      const theme = getQueryParam('theme');
+      if (theme) {
+        document.getElementById('theme-message').innerHTML = 'Current theme: <strong>' + theme + '</strong>';
+      }
+    }
+  </script>
 </head>
 <body>
-  <h1>Tasks</h1>
+  <h1>Task Manager</h1>
+  
+  <% if (typeof user !== 'undefined' && user) { %>
+    <p>Welcome, <%= user.username %>! (<%= user.role %>)</p>
+    <a href="/profile">Profile</a> | <a href="/logout">Logout</a>
+  <% } else { %>
+    <a href="/login">Login</a> | <a href="/register">Register</a>
+  <% } %>
+  
+  <div id="welcome-message"></div>
+  <div id="theme-message"></div>
+  
+  <form action="/" method="get">
+    <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search tasks">
+    <button type="submit">Search</button>
+  </form>
+  
   <a href="/add">Add New Task</a>
   
-  <!-- Search form with XSS vulnerability -->
-  <div>
-    <h3>Search Tasks</h3>
-    <form action="/search" method="get">
-      <input type="text" name="q" placeholder="Search term">
-      <button type="submit">Search</button>
-    </form>
-  </div>
-  
-  <h2>All Tasks</h2>
-  <% if (tasks.length === 0) { %>
-    <p>No tasks yet. Add one!</p>
-  <% } else { %>
-    <ul>
+  <div class="tasks">
+    <% if (tasks && tasks.length > 0) { %>
       <% tasks.forEach(task => { %>
-        <li>
-          <!-- VULNERABILITY: Using <%- %> instead of <%= %> allows XSS -->
+        <div class="task-item">
+          <!-- Stored XSS vulnerability -->
           <h3><%- task.title %></h3>
           <p><%- task.description %></p>
           <p>Created: <%= task.created_at %></p>
+          <% if (typeof task.username !== 'undefined' && task.username) { %>
+            <p>Owner: <%= task.username %></p>
+          <% } %>
           
           <% if (task.completed) { %>
             <p>Status: Completed</p>
@@ -41,42 +67,12 @@
             <button type="submit">Delete</button>
           </form>
           
-          <!-- VULNERABILITY -->
-          <div>
-            <h4>Comments:</h4>
-            <% if (task.comments) { %>
-              <% try { %>
-                <% JSON.parse(task.comments).forEach(comment => { %>
-                  <div>
-                    <!-- VULNERABILITY -->
-                    <p><%- comment.text %></p>
-                    <small>Posted at: <%= comment.timestamp %></small>
-                  </div>
-                <% }); %>
-              <% } catch(e) { %>
-                <p>Error displaying comments</p>
-              <% } %>
-            <% } %>
-            
-            <form method="post" action="/comment/<%= task.id %>">
-              <textarea name="comment" placeholder="Add a comment"></textarea>
-              <button type="submit">Add Comment</button>
-            </form>
-          </div>
-        </li>
+          <a href="/task/<%= task.id %>">View Details</a>
+        </div>
       <% }); %>
-    </ul>
-  <% } %>
-  
-  <!-- VULNERABILITY: Exposing sensitive data to client-side JavaScript -->
-  <script>
-    console.log('Tasks loaded:', JSON.parse('<%- JSON.stringify(tasks) %>'));
-    
-    function generateSearchQuery(term) {
-      return `SELECT * FROM tasks WHERE title LIKE '%${term}%'`;
-    }
-    
-    console.log('Sample query:', generateSearchQuery('test'));
-  </script>
+    <% } else { %>
+      <p>No tasks found. Add a new task to get started!</p>
+    <% } %>
+  </div>
 </body>
 </html>
