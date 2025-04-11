@@ -5,6 +5,7 @@
   <script>
     // FIXED: DOM-based XSS 
     window.onload = function() {
+<<<<<<< Updated upstream
       if (window.location.hash) {
         const welcomeMsg = document.getElementById('welcome-message');
         if (welcomeMsg) {
@@ -24,6 +25,21 @@
           // FIXED: Safe DOM manipulation
           themeMsg.textContent = 'Current theme: ' + theme;
         }
+=======
+      // Fixed DOM-based XSS by using textContent instead of innerHTML
+      const urlParams = new URLSearchParams(window.location.search);
+      const theme = urlParams.get('theme');
+      
+      if (theme) {
+        const themeMessage = document.getElementById('theme-message');
+        themeMessage.textContent = 'Current theme: ' + theme;
+        themeMessage.style.display = 'block';
+      }
+      
+      if (window.location.hash) {
+        const welcomeBanner = document.getElementById('welcome-banner');
+        welcomeBanner.textContent = 'Welcome back, ' + window.location.hash.substring(1);
+>>>>>>> Stashed changes
       }
     }
   </script>
@@ -48,6 +64,7 @@
     <button type="submit">Search</button>
   </form>
   
+<<<<<<< Updated upstream
   <a href="/add">Add New Task</a>
   
   <div class="tasks">
@@ -85,5 +102,75 @@
       <p>No tasks found. Add a new task to get started!</p>
     <% } %>
   </div>
+=======
+  <!-- User search without SQL injection vulnerability -->
+  <div>
+    <h3>Search Users</h3>
+    <form action="/" method="get">
+      <!-- Include CSRF token -->
+      <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>"> -->
+      <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search by username or email...">
+      <button type="submit">Search</button>
+    </form>
+    
+    <% if (searchResults && searchResults.length > 0) { %>
+      <h4>Search Results:</h4>
+      <table border="1">
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+        <% searchResults.forEach(user => { %>
+          <tr>
+            <td><%= user.id %></td>
+            <td><%= user.username %></td>
+            <td><%= user.email %></td>
+            <td><%= user.role %></td>
+          </tr>
+        <% }); %>
+      </table>
+    <% } else if (searchTerm) { %>
+      <p>No users found matching your search.</p>
+    <% } %>
+  </div>
+  
+  <div style="margin-top: 20px;">
+    <h3>Update Your Status</h3>
+    <form action="/" method="get">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="text" name="message" placeholder="What are you working on today?">
+      <button type="submit">Update</button>
+    </form>
+    
+    <% if (message) { %>
+      <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
+        <strong>Your current status:</strong> <%= message %>
+      </div>
+    <% } %>
+  </div>
+  
+  <!-- Fixed Reflected XSS vulnerability -->
+  <% if (typeof reflectedXss !== 'undefined' && reflectedXss) { %>
+    <div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
+      <strong>Notification:</strong> <%= reflectedXss %>
+    </div>
+  <% } %>
+  
+  <% if (user.role === 'admin') { %>
+    <div style="margin-top: 30px; padding: 15px; border: 2px solid #333;">
+      <h3>Admin Panel</h3>
+      <p>Welcome to the admin area. Here you can manage users and system settings.</p>
+      
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/api/users" target="_blank">View All User Data</a> (API endpoint - Now secured)</li>
+        </ul>
+      </div>
+    </div>
+  <% } %>
+>>>>>>> Stashed changes
 </body>
 </html>

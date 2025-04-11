@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
-const db = require('./database');
+const { db, createUser, logAction, logger } = require('./database');
 const session = require('express-session');
+<<<<<<< Updated upstream
 const csrf = require('csurf');
 const helmet = require('helmet');
 const { check, validationResult } = require('express-validator');
@@ -20,10 +21,17 @@ function logMessage(message) {
   const timestamp = new Date().toISOString();
   logStream.write(`${timestamp} - ${message}\n`);
 }
+=======
+const bcrypt = require('bcrypt');
+const helmet = require('helmet');
+// const csrf = require('csurf');
+const cookieParser = require('cookie-parser');
+>>>>>>> Stashed changes
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+<<<<<<< Updated upstream
 app.use(helmet());
 
 
@@ -44,11 +52,42 @@ app.use(session({
 const csrfProtection = csrf();
 app.use(csrfProtection);
 
+=======
+// Security headers
+app.use(helmet());
+
+// Parse cookies for CSRF
+app.use(cookieParser());
+
+app.use(session({
+  secret: 'secure-random-secret-key', 
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production', 
+    httpOnly: true, 
+    maxAge: 3600000
+  } 
+}));
+
+// CSRF protection
+// const csrfProtection = csrf({ cookie: true }); // Use session instead of cookies
+
+// Make sure body parsers come before CSRF middleware
+app.use(cookieParser());
+app.use(session({
+  // session config
+}));
+app.use(express.json());
+>>>>>>> Stashed changes
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Then apply CSRF protection
+// app.use(csrfProtection);
 
 app.set('view engine', 'ejs');
 
+<<<<<<< Updated upstream
 // Middleware to make user info and CSRF token available to templates
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
@@ -96,32 +135,102 @@ app.post('/login', [
         };
         
         logMessage(`User logged in: ${user.username}`);
+=======
+// user and CSRF token in all views
+// app.use((req, res, next) => {
+//   if (req.path === '/login' && req.method === 'POST') {
+//     next();
+//   } else {
+//     csrfProtection(req, res, next);
+//   }
+// });
+
+const isAuthenticated = (req, res, next) => {
+  if (req.session.user) {
+    return next();
+  }
+  res.redirect('/login?error=You+must+be+logged+in');
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.session.user && req.session.user.role === 'admin') {
+    return next();
+  }
+  res.status(403).send('Forbidden: Admin access required');
+};
+
+app.get('/login', (req, res) => {
+  // Escape error message to prevent Reflected XSS
+  const error = req.query.error ? req.query.error.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+  res.render('login', { error });
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  try {
+    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    
+    if (user) {
+      // Verify password with bcrypt
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      
+      if (passwordMatch) {
+        // Log successful login
+        logAction(user.id, 'LOGIN_SUCCESS', req.ip);
+        
+        req.session.user = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role
+        };
+        
+>>>>>>> Stashed changes
         return res.redirect('/');
       }
     }
     
+<<<<<<< Updated upstream
     // Does not provide specific error messages
     return res.render('login', { error: 'Invalid username or password' });
   } catch (error) {
     logMessage(`Login error: ${error.message}`);
     res.render('login', { error: 'An error occurred during login' });
+=======
+    // Log failed login attempt
+    logAction(null, 'LOGIN_FAILED', req.ip);
+    return res.redirect('/login?error=Invalid+username+or+password');
+  } catch (error) {
+    logger.error('Login error:', error);
+    res.redirect('/login?error=' + encodeURIComponent(error.message));
+>>>>>>> Stashed changes
   }
 });
 
 app.get('/logout', (req, res) => {
   if (req.session.user) {
+<<<<<<< Updated upstream
     logMessage(`User logged out: ${req.session.user.username}`);
   }
   
   req.session.destroy(() => {
     res.redirect('/');
   });
+=======
+    logAction(req.session.user.id, 'LOGOUT', req.ip);
+  }
+  req.session.destroy();
+  res.redirect('/login'); 
+>>>>>>> Stashed changes
 });
 
 app.get('/register', (req, res) => {
-  res.render('register', { error: req.query.error });
+  const error = req.query.error ? req.query.error.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+  res.render('register', { error });
 });
 
+<<<<<<< Updated upstream
 app.post('/register', [
   // Validate input
   check('username').trim().isLength({ min: 3 }).escape(),
@@ -272,6 +381,49 @@ app.post('/complete/:id', (req, res) => {
     } else {
       db.prepare('UPDATE tasks SET completed = 1 WHERE id = ? AND user_id = ?')
         .run(req.params.id, req.session.user.id);
+=======
+app.post('/register', async (req, res) => {
+  const { username, password, email } = req.body;
+  
+  try {
+    // Validate inputs
+    if (!username || !password || !email) {
+      return res.redirect('/register?error=All+fields+are+required');
+    }
+    
+    const success = await createUser(username, password, email, 'user');
+    
+    if (success) {
+      res.redirect('/login');
+    } else {
+      res.redirect('/register?error=Username+already+exists');
+    }
+  } catch (error) {
+    logger.error('Registration error:', error);
+    res.redirect('/register?error=' + encodeURIComponent(error.message));
+  }
+});
+
+app.get('/', isAuthenticated, (req, res) => {
+  if (req.query.message) {
+    req.session.userMessage = req.query.message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  
+  const searchTerm = req.query.search || '';
+  let searchResults = [];
+  
+  if (searchTerm) {
+    try {
+      const query = 'SELECT * FROM users WHERE username LIKE ? OR email LIKE ?';
+      const params = [`%${searchTerm}%`, `%${searchTerm}%`];
+      
+      logAction(req.session.user.id, 'SEARCH_USERS', req.ip);
+      
+      searchResults = db.prepare(query).all(...params);
+    } catch (error) {
+      logger.error('Search error:', error);
+      searchResults = [];
+>>>>>>> Stashed changes
     }
     
     res.redirect('/');
@@ -287,6 +439,7 @@ app.post('/delete/:id', (req, res) => {
     return res.redirect('/login?error=You+must+be+logged+in');
   }
   
+<<<<<<< Updated upstream
   try {
     // FIXED: SQL Injection by using parameterized query
     if (req.session.user.role === 'admin') {
@@ -376,3 +529,59 @@ app.listen(port, () => {
 
 
 
+=======
+  res.render('index', { 
+    user: req.session.user, 
+    searchTerm,
+    searchResults,
+    message: req.session.userMessage || '',
+    reflectedXss: req.query.reflectedXss ? req.query.reflectedXss.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '',
+    csrfToken: req.csrfToken ? req.csrfToken() : '' 
+  });
+});
+  
+
+app.get('/profile', isAuthenticated, (req, res) => {
+  const userId = req.session.user.id;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  
+  if (!user) {
+    return res.status(404).send('User not found');
+  }
+  
+  logAction(userId, 'VIEW_PROFILE', req.ip);
+  
+  res.render('profile', { 
+    user,
+    notification: req.query.notification ? req.query.notification.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''
+  });
+});
+
+app.get('/api/users', isAuthenticated, isAdmin, (req, res) => {
+  // Log API access
+  logAction(req.session.user.id, 'API_ACCESS', req.ip);
+  
+  const users = db.prepare('SELECT id, username, email, role FROM users').all();
+  res.json(users);
+});
+
+// app.use((err, req, res, next) => {
+//   if (err.code !== 'EBADCSRFTOKEN') return next(err);
+  
+//   // Handle CSRF token errors
+//   logger.error('CSRF token validation failed', { ip: req.ip });
+//   res.status(403).send('Form tampered with');
+// });
+
+app.listen(port, () => {
+  logger.info(`Server running at http://localhost:${port}`);
+});
+
+
+app.use((req, res, next) => {
+  console.log('Request Method:', req.method);
+  console.log('Request Path:', req.path);
+  console.log('Form Data:', req.body);
+  next();
+});
+>>>>>>> Stashed changes

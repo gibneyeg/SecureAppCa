@@ -6,14 +6,23 @@
 <body>
   <h1>Register</h1>
   
+<<<<<<< Updated upstream
   <!-- FIXED: XSS - Use <%= instead of <%- to escape HTML -->
   <% if (typeof error !== 'undefined' && error) { %>
     <div class="error" style="color: red;"><%= error %></div>
+=======
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div style="color: red;"><%= error %></div>
+>>>>>>> Stashed changes
   <% } %>
   
   <!-- FIXED: Added CSRF token to form -->
   <form method="post" action="/register">
+<<<<<<< Updated upstream
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+=======
+    <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>"> -->
+>>>>>>> Stashed changes
     <div>
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" minlength="3" maxlength="20" required
