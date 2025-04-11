@@ -1,118 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Task Manager</title>
-  <script>
-    // FIXED: DOM-based XSS 
-    window.onload = function() {
-<<<<<<< Updated upstream
-      if (window.location.hash) {
-        const welcomeMsg = document.getElementById('welcome-message');
-        if (welcomeMsg) {
-          welcomeMsg.textContent = 'Welcome back, ' + window.location.hash.substring(1);
-        }
-      }
-      
-      function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-      }
-      
-      const theme = getQueryParam('theme');
-      if (theme) {
-        const themeMsg = document.getElementById('theme-message');
-        if (themeMsg) {
-          // FIXED: Safe DOM manipulation
-          themeMsg.textContent = 'Current theme: ' + theme;
-        }
-=======
-      // Fixed DOM-based XSS by using textContent instead of innerHTML
-      const urlParams = new URLSearchParams(window.location.search);
-      const theme = urlParams.get('theme');
-      
-      if (theme) {
-        const themeMessage = document.getElementById('theme-message');
-        themeMessage.textContent = 'Current theme: ' + theme;
-        themeMessage.style.display = 'block';
-      }
-      
-      if (window.location.hash) {
-        const welcomeBanner = document.getElementById('welcome-banner');
-        welcomeBanner.textContent = 'Welcome back, ' + window.location.hash.substring(1);
->>>>>>> Stashed changes
-      }
-    }
-  </script>
+  <title>Login System</title>
+  <script src="/js/theme-handler.js"></script>
 </head>
 <body>
-  <h1>Task Manager</h1>
-  
-  <% if (typeof user !== 'undefined' && user) { %>
-    <p>Welcome, <%= user.username %>! (<%= user.role %>)</p>
-    <a href="/profile">Profile</a> | <a href="/logout">Logout</a>
-  <% } else { %>
-    <a href="/login">Login</a> | <a href="/register">Register</a>
-  <% } %>
-  
+  <h1>Login System</h1>
+ 
+  <a href="/logout">Logout</a>
   <div id="welcome-message"></div>
   <div id="theme-message"></div>
-  
-  <!-- FIXED: Added CSRF token to form -->
-  <form action="/" method="get">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-    <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search tasks">
-    <button type="submit">Search</button>
-  </form>
-  
-<<<<<<< Updated upstream
-  <a href="/add">Add New Task</a>
-  
-  <div class="tasks">
-    <% if (tasks && tasks.length > 0) { %>
-      <% tasks.forEach(task => { %>
-        <div class="task-item">
-          <!-- FIXED: Stored XSS - Use <%= instead of <%- to escape HTML -->
-          <h3><%= task.title %></h3>
-          <p><%= task.description %></p>
-          <p>Created: <%= task.created_at %></p>
-          <% if (typeof task.username !== 'undefined' && task.username) { %>
-            <p>Owner: <%= task.username %></p>
-          <% } %>
-          
-          <% if (task.completed) { %>
-            <p>Status: Completed</p>
-          <% } else { %>
-            <p>Status: Pending</p>
-            <!-- FIXED: Added CSRF token to form -->
-            <form method="post" action="/complete/<%= task.id %>">
-              <button type="submit">Mark as Complete</button>
-            </form>
-          <% } %>
-          
-          <!-- FIXED: Added CSRF token to form -->
-          <form method="post" action="/delete/<%= task.id %>">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button type="submit">Delete</button>
-          </form>
-          
-          <a href="/task/<%= task.id %>">View Details</a>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <p>No tasks found. Add a new task to get started!</p>
-    <% } %>
-  </div>
-=======
+ 
   <!-- User search without SQL injection vulnerability -->
   <div>
     <h3>Search Users</h3>
     <form action="/" method="get">
-      <!-- Include CSRF token -->
-      <!-- <input type="hidden" name="_csrf" value="<%= csrfToken %>"> -->
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search by username or email...">
       <button type="submit">Search</button>
     </form>
-    
+   
     <% if (searchResults && searchResults.length > 0) { %>
       <h4>Search Results:</h4>
       <table border="1">
@@ -122,12 +29,12 @@
           <th>Email</th>
           <th>Role</th>
         </tr>
-        <% searchResults.forEach(user => { %>
+        <% searchResults.forEach(result => { %>
           <tr>
-            <td><%= user.id %></td>
-            <td><%= user.username %></td>
-            <td><%= user.email %></td>
-            <td><%= user.role %></td>
+            <td><%= result.id %></td>
+            <td><%= result.username %></td>
+            <td><%= result.email %></td>
+            <td><%= result.role %></td>
           </tr>
         <% }); %>
       </table>
@@ -135,7 +42,7 @@
       <p>No users found matching your search.</p>
     <% } %>
   </div>
-  
+ 
   <div style="margin-top: 20px;">
     <h3>Update Your Status</h3>
     <form action="/" method="get">
@@ -143,34 +50,52 @@
       <input type="text" name="message" placeholder="What are you working on today?">
       <button type="submit">Update</button>
     </form>
-    
+   
     <% if (message) { %>
       <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
         <strong>Your current status:</strong> <%= message %>
       </div>
     <% } %>
   </div>
-  
+ 
   <!-- Fixed Reflected XSS vulnerability -->
   <% if (typeof reflectedXss !== 'undefined' && reflectedXss) { %>
     <div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
       <strong>Notification:</strong> <%= reflectedXss %>
     </div>
   <% } %>
-  
-  <% if (user.role === 'admin') { %>
+ 
+  <!-- FIXED: Check if user exists before checking role -->
+  <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
     <div style="margin-top: 30px; padding: 15px; border: 2px solid #333;">
       <h3>Admin Panel</h3>
       <p>Welcome to the admin area. Here you can manage users and system settings.</p>
-      
-      <div>
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/api/users" target="_blank">View All User Data</a> (API endpoint - Now secured)</li>
-        </ul>
-      </div>
+     
+      <!-- Display all users directly in the admin panel instead of using an API -->
+      <% if (typeof allUsers !== 'undefined' && allUsers && allUsers.length > 0) { %>
+        <div style="margin-top: 20px;">
+          <h4>All Users</h4>
+          <table border="1" style="width: 100%;">
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+            <% allUsers.forEach(user => { %>
+              <tr>
+                <td><%= user.id %></td>
+                <td><%= user.username %></td>
+                <td><%= user.email %></td>
+                <td><%= user.role %></td>
+              </tr>
+            <% }); %>
+          </table>
+        </div>
+      <% } else { %>
+        <p>No users found in the system.</p>
+      <% } %>
     </div>
   <% } %>
->>>>>>> Stashed changes
 </body>
 </html>

@@ -6,28 +6,19 @@
 <body>
   <h1>Login</h1>
   
-<<<<<<< Updated upstream
-  <!-- FIXED: XSS - Use <%= instead of <%- to escape HTML -->
-  <% if (typeof error !== 'undefined' && error) { %>
-    <div class="error" style="color: red;"><%= error %></div>
-=======
   <!-- Fixed Reflected XSS vulnerability: Properly escape error message -->
   <% if (typeof error !== 'undefined' && error) { %>
     <div style="color: red;"><%= error %></div>
->>>>>>> Stashed changes
   <% } %>
   
   <% if (typeof message !== 'undefined' && message) { %>
     <div class="message" style="color: green;"><%= message %></div>
   <% } %>
   
-  <!-- FIXED: Added CSRF token to form -->
+  <!-- Added CSRF token to form -->
   <form method="post" action="/login">
-<<<<<<< Updated upstream
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-=======
     <!-- Include CSRF token -->
->>>>>>> Stashed changes
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div>
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required>
@@ -48,13 +39,10 @@
       <li>User: username <strong>user1</strong>, password <strong>password123</strong></li>
     </ul>
   </div>
-<<<<<<< Updated upstream
-=======
   
   <div>
     <h3>Security Note:</h3>
-    <p>SQL Injection has been fixed. Passwords are now stored securely.</p>
+    <p>All security measures are in place. Passwords are stored securely.</p>
   </div>
->>>>>>> Stashed changes
 </body>
 </html>
