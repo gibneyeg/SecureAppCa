@@ -9,8 +9,8 @@
       const notification = urlParams.get('notification');
       
       if (notification) {
-        // Vulnerable: using innerHTML with user input
         document.getElementById('notification-area').innerHTML = notification;
+        document.getElementById('notification-area').style.display = 'block';
       }
     }
   </script>
@@ -18,17 +18,27 @@
 <body>
   <h1>Your Profile</h1>
   
-  <div id="notification-area"></div>
+  <div>
+    <a href="/">Dashboard</a> | 
+    <a href="/logout">Logout</a>
+  </div>
+  
+  <div id="notification-area" style="color: blue; border: 1px solid #ccc; padding: 10px; margin: 10px 0; display: none;"></div>
   
   <div>
+    <h3>Account Information</h3>
     <p><strong>Username:</strong> <%= user.username %></p>
     <p><strong>Email:</strong> <%= user.email %></p>
     <p><strong>Role:</strong> <%= user.role %></p>
   </div>
   
-  <h2>Your Tasks</h2>
-  <p><a href="/">View All Your Tasks</a></p>
-  
-  <a href="/logout">Logout</a>
+  <div style="margin-top: 20px;">
+    <h3>Profile Settings</h3>
+    <p>You can customize your profile by setting preferences:</p>
+    <ul>
+      <li>Add a notification: <code>/profile?notification=Welcome+back!</code></li>
+      <li>Change your theme: <code>/?theme=dark</code></li>
+    </ul>
+  </div>
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <!-- Reflected XSS vulnerability -->
   <% if (typeof error !== 'undefined' && error) { %>
-    <div class="error" style="color: red;"><%- error %></div>
+    <div style="color: red;"><%- error %></div>
   <% } %>
   
   <form method="post" action="/register">
@@ -27,6 +27,8 @@
     <button type="submit">Register</button>
   </form>
   
-  <p>Already have an account? <a href="/login">Login</a></p>
+  <div>
+    <p>Already have an account? <a href="/login">Login</a></p>
+  </div>
 </body>
 </html>

@@ -1,78 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Task Manager</title>
+  <title>Dashboard</title>
   <script>
-    // DOM-based XSS vulnerability =
     window.onload = function() {
-      if (window.location.hash) {
-        document.getElementById('welcome-message').innerHTML = 'Welcome back, ' + window.location.hash.substring(1);
-      }
+      // DOM-based XSS vulnerability
+      const urlParams = new URLSearchParams(window.location.search);
+      const theme = urlParams.get('theme');
       
-      // DOM-based XSS vulnerability 
-      function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-      }
-      
-      const theme = getQueryParam('theme');
       if (theme) {
-        document.getElementById('theme-message').innerHTML = 'Current theme: <strong>' + theme + '</strong>';
+        document.getElementById('theme-message').innerHTML = 'Current theme: ' + theme;
+        document.getElementById('theme-message').style.display = 'block';
+      }
+      
+      if (window.location.hash) {
+        document.getElementById('welcome-banner').innerHTML = 'Welcome back, ' + window.location.hash.substring(1);
       }
     }
   </script>
 </head>
 <body>
-  <h1>Task Manager</h1>
+  <h1>Task Manager Dashboard</h1>
   
-  <% if (typeof user !== 'undefined' && user) { %>
-    <p>Welcome, <%= user.username %>! (<%= user.role %>)</p>
-    <a href="/profile">Profile</a> | <a href="/logout">Logout</a>
-  <% } else { %>
-    <a href="/login">Login</a> | <a href="/register">Register</a>
-  <% } %>
+  <div>
+    <a href="/profile">My Profile</a> | 
+    <a href="/logout">Logout</a>
+  </div>
   
-  <div id="welcome-message"></div>
-  <div id="theme-message"></div>
+  <div>
+    <h3>Welcome, <%= user.username %>!</h3>
+    <p>You are logged in as a <%= user.role %>.</p>
+  </div>
   
-  <form action="/" method="get">
-    <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search tasks">
-    <button type="submit">Search</button>
-  </form>
+  <div id="welcome-banner"></div>
+  <div id="theme-message" style="display: none;"></div>
   
-  <a href="/add">Add New Task</a>
+  <!-- User search with SQL injection vulnerability -->
+  <div>
+    <h3>Search Users</h3>
+    <form action="/" method="get">
+      <input type="text" name="search" value="<%= searchTerm %>" placeholder="Search by username or email...">
+      <button type="submit">Search</button>
+    </form>
+    
+<!-- In your dashboard.ejs file -->
+<% if (searchResults && searchResults.length > 0) { %>
+  <h4>Search Results:</h4>
+  <table border="1">
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Role</th>
+    </tr>
+    <% searchResults.forEach(user => { %>
+      <tr>
+        <td><%= user.id %></td>
+        <td><%= user.username %></td>
+        <td><%= user.email %></td>
+        <td><%= user.role %></td>
+      </tr>
+    <% }); %>
+  </table>
+<% } else if (searchTerm) { %>
+  <p>No users found matching your search.</p>
+<% } %>
+  </div>
   
-  <div class="tasks">
-    <% if (tasks && tasks.length > 0) { %>
-      <% tasks.forEach(task => { %>
-        <div class="task-item">
-          <!-- Stored XSS vulnerability -->
-          <h3><%- task.title %></h3>
-          <p><%- task.description %></p>
-          <p>Created: <%= task.created_at %></p>
-          <% if (typeof task.username !== 'undefined' && task.username) { %>
-            <p>Owner: <%= task.username %></p>
-          <% } %>
-          
-          <% if (task.completed) { %>
-            <p>Status: Completed</p>
-          <% } else { %>
-            <p>Status: Pending</p>
-            <form method="post" action="/complete/<%= task.id %>">
-              <button type="submit">Mark as Complete</button>
-            </form>
-          <% } %>
-          
-          <form method="post" action="/delete/<%= task.id %>">
-            <button type="submit">Delete</button>
-          </form>
-          
-          <a href="/task/<%= task.id %>">View Details</a>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <p>No tasks found. Add a new task to get started!</p>
+  <!-- Status update (Stored XSS vulnerability) -->
+  <div style="margin-top: 20px;">
+    <h3>Update Your Status</h3>
+    <form action="/" method="get">
+      <input type="text" name="message" placeholder="What are you working on today?">
+      <button type="submit">Update</button>
+    </form>
+    
+    <% if (message) { %>
+      <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
+        <strong>Your current status:</strong> <%- message %>
+      </div>
     <% } %>
   </div>
+  
+  <!-- Reflected XSS vulnerability -->
+  <% if (typeof reflectedXss !== 'undefined' && reflectedXss) { %>
+    <div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
+      <strong>Notification:</strong> <%- reflectedXss %>
+    </div>
+  <% } %>
+  
+  <% if (user.role === 'admin') { %>
+    <div style="margin-top: 30px; padding: 15px; border: 2px solid #333;">
+      <h3>Admin Panel</h3>
+      <p>Welcome to the admin area. Here you can manage users and system settings.</p>
+      
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/api/users" target="_blank">View All User Data</a> (API endpoint)</li>
+        </ul>
+      </div>
+    </div>
+  <% } %>
 </body>
 </html>

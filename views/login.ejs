@@ -8,7 +8,7 @@
   
   <!-- Reflected XSS vulnerability: Directly outputting error message without escaping -->
   <% if (typeof error !== 'undefined' && error) { %>
-    <div class="error" style="color: red;"><%- error %></div>
+    <div style="color: red;"><%- error %></div>
   <% } %>
   
   <form method="post" action="/login">
@@ -24,11 +24,20 @@
   </form>
   
   <div>
+    <p>Don't have an account? <a href="/register">Register</a></p>
+  </div>
+  
+  <div>
     <h3>Demo Accounts:</h3>
     <ul>
       <li>Admin: username <strong>admin</strong>, password <strong>admin123</strong></li>
       <li>User: username <strong>user1</strong>, password <strong>password123</strong></li>
     </ul>
+  </div>
+  
+  <div>
+    <h3>SQL Injection Example:</h3>
+    <p>Try username: <code>admin' --</code> with any password</p>
   </div>
 </body>
 </html>
