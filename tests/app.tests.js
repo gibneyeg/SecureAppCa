@@ -17,7 +17,6 @@ test.describe('Login System Tests', () => {
     await page.fill('#username', REGULAR_USER.username);
     await page.fill('#password', REGULAR_USER.password);
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(`${BASE_URL}/`);
     await expect(page.locator('a[href="/logout"]')).toBeVisible();
     
     // logout

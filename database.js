@@ -16,6 +16,11 @@ const logger = winston.createLogger({
 const db = new Database(path.join(__dirname, 'users.db'));
 
 function initDb() {
+
+  db.exec(`
+    DROP TABLE IF EXISTS logs;
+    DROP TABLE IF EXISTS users;
+  `);
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
