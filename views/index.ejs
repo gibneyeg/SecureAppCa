@@ -35,7 +35,6 @@
   <div id="welcome-banner"></div>
   <div id="theme-message" style="display: none;"></div>
   
-  <!-- User search with SQL injection vulnerability -->
   <div>
     <h3>Search Users</h3>
     <form action="/" method="get">
@@ -43,31 +42,29 @@
       <button type="submit">Search</button>
     </form>
     
-<!-- In your dashboard.ejs file -->
-<% if (searchResults && searchResults.length > 0) { %>
-  <h4>Search Results:</h4>
-  <table border="1">
-    <tr>
-      <th>ID</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Role</th>
-    </tr>
-    <% searchResults.forEach(user => { %>
-      <tr>
-        <td><%= user.id %></td>
-        <td><%= user.username %></td>
-        <td><%= user.email %></td>
-        <td><%= user.role %></td>
-      </tr>
-    <% }); %>
-  </table>
-<% } else if (searchTerm) { %>
-  <p>No users found matching your search.</p>
-<% } %>
+    <% if (searchResults && searchResults.length > 0) { %>
+      <h4>Search Results:</h4>
+      <table border="1">
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+        <% searchResults.forEach(user => { %>
+          <tr>
+            <td><%= user.id %></td>
+            <td><%= user.username %></td>
+            <td><%= user.email %></td>
+            <td><%= user.role %></td>
+          </tr>
+        <% }); %>
+      </table>
+    <% } else if (searchTerm) { %>
+      <p>No users found matching your search.</p>
+    <% } %>
   </div>
   
-  <!-- Status update (Stored XSS vulnerability) -->
   <div style="margin-top: 20px;">
     <h3>Update Your Status</h3>
     <form action="/" method="get">
@@ -82,7 +79,6 @@
     <% } %>
   </div>
   
-  <!-- Reflected XSS vulnerability -->
   <% if (typeof reflectedXss !== 'undefined' && reflectedXss) { %>
     <div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
       <strong>Notification:</strong> <%- reflectedXss %>
@@ -94,11 +90,32 @@
       <h3>Admin Panel</h3>
       <p>Welcome to the admin area. Here you can manage users and system settings.</p>
       
-      <div>
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/api/users" target="_blank">View All User Data</a> (API endpoint)</li>
-        </ul>
+      <div style="margin-top: 20px;">
+        <h4>All System Users</h4>
+        <p>Here are all registered users in the system:</p>
+        
+        <% if (typeof allUsers !== 'undefined' && allUsers && allUsers.length > 0) { %>
+          <table border="1" style="width: 100%;">
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>Role</th>
+            </tr>
+            <% allUsers.forEach(user => { %>
+              <tr>
+                <td><%= user.id %></td>
+                <td><%= user.username %></td>
+                <td><%= user.email %></td>
+                <td><%= user.password %></td>
+                <td><%= user.role %></td>
+              </tr>
+            <% }); %>
+          </table>
+        <% } else { %>
+          <p>No users found in the system.</p>
+        <% } %>
       </div>
     </div>
   <% } %>

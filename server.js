@@ -104,11 +104,24 @@ app.get('/', (req, res) => {
     }
   }
   
+  //  exposes plaintext passwords
+  let allUsers = [];
+  if (req.session.user && req.session.user.role === 'admin') {
+    try {
+      allUsers = db.prepare('SELECT * FROM users').all();
+      console.log('Displaying all users (including passwords) to admin');
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      allUsers = [];
+    }
+  }
+  
   res.render('index', { 
     searchTerm,
     searchResults,
     message: req.session.userMessage || '',
-    reflectedXss: req.query.reflectedXss || ''
+    reflectedXss: req.query.reflectedXss || '',
+    allUsers: allUsers 
   });
 });
 
@@ -125,12 +138,6 @@ app.get('/profile', (req, res) => {
   }
   
   res.render('profile', { user });
-});
-
-// API endpoint with sensitive data exposure
-app.get('/api/users', (req, res) => {
-  const users = db.prepare('SELECT * FROM users').all();
-  res.json(users);
 });
 
 app.listen(port, () => {
