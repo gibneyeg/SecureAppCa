@@ -10,8 +10,7 @@
   <a href="/logout">Logout</a>
   <div id="welcome-message"></div>
   <div id="theme-message"></div>
- 
-  <!-- User search without SQL injection vulnerability -->
+  <a href="/profile">Profile</a>
   <div>
     <h3>Search Users</h3>
     <form action="/" method="get">
@@ -58,14 +57,12 @@
     <% } %>
   </div>
  
-  <!-- Fixed Reflected XSS vulnerability -->
   <% if (typeof reflectedXss !== 'undefined' && reflectedXss) { %>
     <div style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
       <strong>Notification:</strong> <%= reflectedXss %>
     </div>
   <% } %>
  
-  <!-- FIXED: Check if user exists before checking role -->
   <% if (typeof user !== 'undefined' && user && user.role === 'admin') { %>
     <div style="margin-top: 30px; padding: 15px; border: 2px solid #333;">
       <h3>Admin Panel</h3>
