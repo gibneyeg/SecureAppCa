@@ -1,24 +1,45 @@
-# SecureAppCa-Insecure branch
+Login System - Insecure Branch
+Vulnerabilities Introduced
+1. SQL Injection
 
-## Vulnerabilities Introduced
+Direct string concatenation in SQL queries
+No parameterized queries
+Example vulnerability: login endpoint using string concatenation
 
-### 1. SQL Injection
-- Direct string concatenation in SQL queries
-- No parameterized queries
-- User input directly incorporated into SQL statements
+2. XSS (Cross-Site Scripting)
 
-### 2. XSS (Cross-Site Scripting)
-- **Reflected XSS**: Search functionality that reflects user input without sanitization
-- **DOM-based XSS**: JavaScript that inserts user input into the DOM
-- **Stored XSS**: Task comments that store and display unfiltered HTML/JavaScript
+Reflected XSS: Error messages displayed without sanitization using <%- error %>
+DOM-based XSS: JavaScript directly inserting query parameters into innerHTML
+Stored XSS: Status updates stored and displayed without sanitization
 
-### 3. Sensitive Data Exposure
-- Detailed error messages exposed to users
-- Database queries logged to console
-- Task data exposed in client-side JavaScript
+3. CSRF Vulnerabilities
 
-## How to Run
+No CSRF tokens on forms
+No SameSite cookie attributes
+No protection against cross-site request forgery
+
+4. Authentication Weaknesses
+
+Plaintext password storage
+Weak session management
+No proper logout functionality
+
+5. Sensitive Data Exposure
+
+Admin API exposing all user data including passwords
+Detailed error messages exposed to users
+Database query details logged to console
+
+How to Run
 
 1. Install dependencies:
-```bash
+
 npm install
+
+2. Start the server:
+
+3. npm start
+
+Access the application
+
+http://localhost:3000
